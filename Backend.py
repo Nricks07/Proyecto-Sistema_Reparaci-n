@@ -79,3 +79,7 @@ class Stock:
     
     def agregar():
         pass
+
+    #hola amores
+    def eliminar():
+        pass
