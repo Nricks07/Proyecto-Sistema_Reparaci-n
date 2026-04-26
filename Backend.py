@@ -4,6 +4,7 @@ class Persona:
         self.nombre = nom
         self.num_cel = cel
 #me gusta enrique
+
 class Administrador(Persona):
     def __init__(self, nom, cel,id_admin, contra):
         super().__init__(nom, cel)
@@ -32,7 +33,11 @@ class Usuario(Persona):
         self.id_usuario = id_usu
         self.usuario = usu
         self.contraseña = contra
+    
+    #Metodo para que cree una solicitud
 
+
+#quitamos y dejamos para celular y consola
 class Aparato:
     def __init__(self, id_prod, marca, mod):
         self.id_producto = id_prod
@@ -72,9 +77,6 @@ class Solicitudes:
         self.categoria = cat
         self.id_cliente = id_client
         self.descripcion = desc
-    
-    def calcular_precio():
-        pass
 
 class Stock:
     def __init__(self):
@@ -85,3 +87,7 @@ class Stock:
 
     def agregar_cant(self, nombre, cantidad):
         self.stock[nombre] += cantidad
+
+class Provedor:
+    def __init__(self):
+        pass
