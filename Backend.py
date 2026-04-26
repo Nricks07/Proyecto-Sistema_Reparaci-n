@@ -3,7 +3,7 @@ class Persona:
     def __init__(self, nom, cel):
         self.nombre = nom
         self.num_cel = cel
-
+#me gusta enrique
 class Administrador(Persona):
     def __init__(self, nom, cel,id_admin, contra):
         super().__init__(nom, cel)
