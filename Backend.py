@@ -63,8 +63,12 @@ class Laptop(Aparato):
         self.bateria = bat
 
 class Solicitudes:
-    def __init__(self, id_sol, cat, id_client, desc):
+    def __init__(self, id_sol, cat, id_client, tipo, desc):
+        tipo = ["Mantenimiento", "Reparacion"]
+        cat = ["Celular", "Consola", "Laptop"]
+        self.categoria = cat
         self.id_solicitud = id_sol
+        self.tipo = tipo
         self.categoria = cat
         self.id_cliente = id_client
         self.descripcion = desc
@@ -73,13 +77,11 @@ class Solicitudes:
         pass
 
 class Stock:
-    def __init__(self, nom):
-        self.nombre = nom
+    def __init__(self):
         self.stock = dict[str, int] = {}
     
-    def agregar():
-        pass
+    def agregar_nuevo(self, nombre):
+        self.stock = {nombre: 0}
 
-    #hola amores
-    def eliminar():
-        pass
+    def agregar_cant(self, nombre, cantidad):
+        self.stock[nombre] += cantidad
