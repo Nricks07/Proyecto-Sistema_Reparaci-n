@@ -1,17 +1,20 @@
 import random
+#Complemente un poco las clases de usuario y de administrador
 class Persona:
-    def __init__(self, nom, cel):
-        self.nombre = nom
+    def _init_(self, name, apellido, mail, cel):
+        self.nombre = name
+        self.apellido = apellido
+        self.correo = mail
         self.num_cel = cel
-#me gusta enrique
-
-#Ya sabiamos
 
 class Administrador(Persona):
-    def __init__(self, nom, cel,id_admin, contra):
-        super().__init__(nom, cel)
+    def _init_(self, nom, apellido, mail, cel, id_admin, contra):
+        super()._init_(nom, apellido, mail, cel)
         self.contraseña = contra
         self.id_admin = id_admin
+
+    def cambiar_estados_soli(self, soli, new_estado):
+        soli.estado = new_estado
 
     def gest_stock():
         pass
@@ -29,48 +32,59 @@ class Administrador(Persona):
         pass
 
 class Usuario(Persona):
-    def __init__(self, nom, cel, id_usu, usu, contra):
-        super().__init__(nom, cel)
+    def _init_(self, nom, apellido, mail, cel, id_usu, usu, contra):
+        super()._init_(nom, apellido, mail, cel)
         self.soli_activas = []
         self.id_usuario = id_usu
         self.usuario = usu
         self.contraseña = contra
-    
-    #Metodo para que cree una solicitud
 
-
-#quitamos y dejamos para celular y consola
 class Aparato:
-    def __init__(self, id_prod, marca, mod):
+    def _init_(self, id_prod, marca, mod):
         self.id_producto = id_prod
         self.marca = marca
         self.modelo = mod
 
 class Celular(Aparato):
-    def __init__(self, id_prod, marca, mod, cam, bat, carcasa, con_car, pantalla):
-        super().__init__(id_prod, marca, mod)
-        self.camara = cam
-        self.bateria = bat
-        self.carcasa = carcasa
-        self.control_carga = con_car
-        self.pantalla = pantalla
+    def _init_(self, id_prod, marca, mod, falla_especifica_cel):
+        super()._init_(id_prod, marca, mod)
+        self.falla_especifica = falla_especifica_cel
+
+# class Celular(Aparato):
+#     def _init_(self, id_prod, marca, mod, cam, bat, carcasa, con_car, pantalla):
+#         super()._init_(id_prod, marca, mod)
+#         self.camara = cam
+#         self.bateria = bat
+#         self.carcasa = carcasa
+#         self.control_carga = con_car
+#         self.pantalla = pantalla
 
 class Consola(Aparato):
-    def __init__(self, id_prod, marca, mod, alm, cont):
-        super().__init__(id_prod, marca, mod)
-        self.almacenamiento = alm
-        self.control = cont
+    def _init_(self, id_prod, marca, mod, falla_especifica_consola):
+        super()._init_(id_prod, marca, mod)
+        self.falla_especifica = falla_especifica_consola
+
+# class Consola(Aparato):
+#     def _init_(self, id_prod, marca, mod, alm, cont):
+#         super()._init_(id_prod, marca, mod)
+#         self.almacenamiento = alm
+#         self.control = cont
 
 class Laptop(Aparato):
-    def __init__(self, id_prod, marca, mod, sis_ope, mem, alm, bat):
-        super().__init__(id_prod, marca, mod)
-        self.sistema_ope = sis_ope
-        self.memoria = mem
-        self.almacenamiento = alm
-        self.bateria = bat
+    def _init_(self, id_prod, marca, mod, falla_especifica_laptop):
+        super()._init_(id_prod, marca, mod)
+        self.falla_especifica = falla_especifica_laptop
+
+# class Laptop(Aparato):
+#     def _init_(self, id_prod, marca, mod, sis_ope, mem, alm, bat):
+#         super()._init_(id_prod, marca, mod)
+#         self.sistema_ope = sis_ope
+#         self.memoria = mem
+#         self.almacenamiento = alm
+#         self.bateria = bat
 
 class Solicitudes:
-    def __init__(self, id_sol, cat, id_client, tipo, desc):
+    def _init_(self, id_sol, cat, id_client, tipo, desc):
         tipo = ["Mantenimiento", "Reparacion"]
         cat = ["Celular", "Consola", "Laptop"]
         self.categoria = cat
@@ -79,17 +93,16 @@ class Solicitudes:
         self.categoria = cat
         self.id_cliente = id_client
         self.descripcion = desc
+    
+    def calcular_precio():
+        pass
 
 class Stock:
-    def __init__(self):
-        self.stock = dict[str, int] = {}
+    def _init_(self):
+        self.stock: dict[str, int] = {}
     
     def agregar_nuevo(self, nombre):
         self.stock = {nombre: 0}
 
     def agregar_cant(self, nombre, cantidad):
         self.stock[nombre] += cantidad
-
-class Provedor:
-    def __init__(self):
-        pass
