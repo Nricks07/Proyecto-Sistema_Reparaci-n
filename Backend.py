@@ -1,5 +1,19 @@
 import random
 #Complemente un poco las clases de usuario y de administrador
+from supabase import create_client
+
+# Configuración de conexión (Datos de tus capturas previas)
+url = "https://wuxeivshsbbarvwazogy.supabase.co"
+key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind1eGVpdnNoc2JiYXJ2d2F6b2d5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5MDUxNTUsImV4cCI6MjA5MzQ4MTE1NX0.AomXNEB35nQ-00PCM1x8gQuPx43qFQ9jfardt0J6TWg" # Reemplaza con la clave de tu imagen_8.png
+
+try:
+    # Inicializar el cliente de Supabase
+    supabase = create_client(url, key)
+    print("--- Sistema de Gestión de Reparaciones ---")
+    print("¡Conexión exitosa al sistema de la tienda!")
+except Exception as e:
+    print(f"Error al conectar: {e}")
+
 class Persona:
     def _init_(self, name, apellido, mail, cel):
         self.nombre = name
