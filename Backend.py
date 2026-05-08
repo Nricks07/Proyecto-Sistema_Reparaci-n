@@ -1,5 +1,5 @@
 import random
-#Complemente un poco las clases de usuario y de administrador
+
 from supabase import create_client
 
 # Configuración de conexión (Datos de tus capturas previas)
