@@ -16,6 +16,17 @@ class Persona:
         self.correo = mail
         self.num_cel = cel
 
+    def login(correo, contra):
+        try:
+            usuario = Usuario()
+            sesion = supabase.auth.sign_in_with_password({
+                "email": correo,
+                "password": contra,
+            })
+            messagebox.showinfo("Login", "Login exitoso")
+        except Exception as e:
+            messagebox.showerror("Login", f"Error al iniciar sesión: {e}")
+
 class Administrador(Persona):
     def __init__(self, nom, mail, cel, id_admin, contra):
         super().__init__(nom, mail, cel)
@@ -150,7 +161,7 @@ class Solicitudes:
         mostrar = supabase.table("Solicitudes").select("*").eq("estado", "Finalizado").execute()
         descripcion = supabase.table("Solicitudes").select("descripcion").eq("estado", "Finalizado").execute()
         monto = supabase.table("Solicitudes").select("costo").eq("estado", "Finalizado").execute()
-        mostrar2 = supabase.table("Finanzas").insert([{"descripcion" descripcion: , "monto" : monto, "tipo" : "Ingreso"}]).execute()
+        mostrar2 = supabase.table("Finanzas").insert([{"descripcion": descripcion, "monto" : monto, "tipo" : "Ingreso"}]).execute()
         return mostrar, mostrar2
 
     def cambiar_estado_soli(self, id_sol, estado):
