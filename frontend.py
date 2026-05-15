@@ -108,14 +108,7 @@ def ventana_solicitudes(sist_admin):
 
     tabla.pack(fill="both", expand=True, padx=20, pady=20)
 
-    crear_controles_estado(ventana_soli)
-    btn_salir = ctk.CTkButton(ventana_soli, text="Salir", command=ventana_administrador)
-    btn_salir.pack(pady=10)
-    limpiar_pantalla(ventana_soli)
-
-    ventana_soli.mainloop()
-
-# Insertar los datos en la tabla
+    # Insertar los datos en la tabla primero
     if datos:
         for fila in datos:
             tabla.insert("", "end", values=(
@@ -129,80 +122,82 @@ def ventana_solicitudes(sist_admin):
                 fila.get("created_at", "")
             ))
 
-def crear_controles_estado(ventana):
-    # 1. Crear un Frame para los controles
-    self.frame_controles = ctk.CTkFrame(ventana)
-    self.frame_controles.pack(pady=10, padx=20, fill="x")
+    # --- Lógica de botones anidada ---
+    def actualizar_estado_logica():
+        seleccion = tabla.selection()
+            
+        if not seleccion:
+            messagebox.showwarning("Atención", "Por favor, selecciona un pedido de la tabla")
+            return
 
-    self.label = ctk.CTkLabel(self.frame_controles, text="Cambiar estado del pedido seleccionado:")
-    self.label.pack(side="left", padx=10)
+        nuevo_estado = menu_estado.get()
+        item_id = seleccion[0]
+        valores_actuales = list(tabla.item(item_id, "values"))
+        
+        # columna 0 es el ID real de la base de datos
+        id_db_pedido = valores_actuales[0]
+            
+        # El índice 5 corresponde a la columna "estado"
+        valores_actuales[5] = nuevo_estado
+        
+        try:
+            sist_admin.cambiar_estados_soli(id_db_pedido, nuevo_estado)
+            tabla.item(item_id, values=valores_actuales) # Actualizar visualmente la tabla
+            messagebox.showinfo("Éxito", f"Pedido actualizado a: {nuevo_estado}")
+        except Exception as e:
+            messagebox.showerror("Error", f"No se pudo actualizar el pedido: {e}")
 
-    # 2. El Menú de opciones
-    self.opciones_estado = ["Cancelar", "Listo"]
-    self.menu_estado = ctk.CTkOptionMenu(self.frame_controles, values=self.opciones_estado)
-    self.menu_estado.pack(side="left", padx=10)
-    self.menu_estado.set("Pendiente") # Valor por defecto
+    def eliminar_pedido_logica():
+        seleccion = tabla.selection()
+            
+        if not seleccion:
+            messagebox.showwarning("Atención", "Debes seleccionar un pedido para eliminar.")
+            return
 
-    # 3. Botón para aplicar el cambio
-    self.btn_actualizar = ctk.CTkButton(self.frame_controles, 
-                                        text="Actualizar Estado", 
-                                        command=self.actualizar_estado_logica)
-    self.btn_actualizar.pack(side="left", padx=10)
+        item_id = seleccion[0]
+        valores = tabla.item(item_id, "values")
+        id_db_pedido = valores[0]
 
-    self.btn_eliminar = ctk.CTkButton(self.frame_controles, 
+        confirmacion = messagebox.askyesno(
+            "Confirmar Eliminación",
+            f"¿Estás seguro de que quieres eliminar el pedido con ID {id_db_pedido}?"
+        )
+
+        if confirmacion:
+            try:
+                sist_solicitud.eliminar_soli(id_db_pedido)
+                tabla.delete(item_id) # Remover de la tabla visualmente
+                messagebox.showinfo("Éxito", "Pedido eliminado correctamente.")
+            except Exception as e:
+                messagebox.showerror("Error", f"No se pudo eliminar el pedido: {e}")
+
+    # --- Controles Visuales ---
+    frame_controles = ctk.CTkFrame(ventana_soli)
+    frame_controles.pack(pady=10, padx=20, fill="x")
+
+    label = ctk.CTkLabel(frame_controles, text="Cambiar estado del pedido seleccionado:")
+    label.pack(side="left", padx=10)
+
+    # Opciones de estado ampliadas
+    opciones_estado = ["Pendiente", "En progreso", "Listo", "Cancelado"]
+    menu_estado = ctk.CTkOptionMenu(frame_controles, values=opciones_estado)
+    menu_estado.pack(side="left", padx=10)
+    menu_estado.set("Pendiente") # Valor por defecto
+
+    btn_actualizar = ctk.CTkButton(frame_controles, text="Actualizar Estado", command=actualizar_estado_logica)
+    btn_actualizar.pack(side="left", padx=10)
+
+    btn_eliminar = ctk.CTkButton(frame_controles, 
                                   text="Eliminar Pedido", 
                                   fg_color="#922B21",  # Color rojo para advertir peligro
                                   hover_color="#7B241C",
-                                  command=self.eliminar_pedido_logica)
-    self.btn_eliminar.pack(side="left", padx=10)
+                                  command=eliminar_pedido_logica)
+    btn_eliminar.pack(side="left", padx=10)
 
-def eliminar_pedido_logica(self):
-    seleccion = self.tree.selection()
-        
-    if not seleccion:
-        messagebox.showwarning("Atención", "Debes seleccionar un pedido para eliminar.")
-        return
+    btn_salir = ctk.CTkButton(ventana_soli, text="Salir", command=ventana_soli.destroy)
+    btn_salir.pack(pady=10)
 
-    # ID del item en el Treeview
-    item_id = seleccion[0]
-    valores = self.tree.item(item_id, "values")
-    
-    #columna 0 es el ID que necesitas para Supabase
-    id_db_pedido = valores[0]
-
-    # Pregunta de seguridad
-    confirmacion = messagebox.askyesno(
-        "Confirmar Eliminación",
-        f"¿Estás seguro de que quieres eliminar el pedido con ID {id_db_pedido}?"
-    )
-
-    if confirmacion:
-        try:
-            sist_solicitud.eliminar_soli(id_db_pedido)
-            messagebox.showinfo("Éxito", "Pedido eliminado correctamente.")
-            
-        except Exception as e:
-            messagebox.showerror("Error", f"No se pudo eliminar el pedido: {e}")
-
-def actualizar_estado_logica(self):
-    seleccion = self.tree.selection()
-        
-    if not seleccion:
-        messagebox.showwarning("Atención", "Por favor, selecciona un pedido de la tabla")
-        return
-
-    nuevo_estado = self.menu_estado.get()
-        
-    item_id = seleccion[0]
-    valores_actuales = list(self.tree.item(item_id, "values"))
-        
-    # El índice 6 corresponde a la columna "estado"
-    valores_actuales[6] = nuevo_estado
-    sist_admin.cambiar_estados_soli(item_id, nuevo_estado)
-
-    # Actualizar visualmente la tabla
-    self.tree.item(item_id, values=valores_actuales)
-    messagebox.showinfo("Éxito", f"Pedido actualizado a: {nuevo_estado}")
+    ventana_soli.mainloop()
 
 def ventana_stock():
     ventana_stock = ctk.CTk()
