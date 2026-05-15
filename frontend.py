@@ -189,26 +189,76 @@ def ventana_solicitudes(sist_admin):
 
     btn_eliminar = ctk.CTkButton(frame_controles, 
                                   text="Eliminar Pedido", 
-                                  fg_color="#922B21",  # Color rojo para advertir peligro
+                                  fg_color="#922B21",
                                   hover_color="#7B241C",
                                   command=eliminar_pedido_logica)
     btn_eliminar.pack(side="left", padx=10)
 
     btn_salir = ctk.CTkButton(ventana_soli, text="Salir", command=ventana_soli.destroy)
     btn_salir.pack(pady=10)
-
+    limpiar_pantalla(ventana_soli)
     ventana_soli.mainloop()
-
-def ventana_stock():
+#Falta botones
+def ventana_stock(sist_admin):
     ventana_stock = ctk.CTk()
     ventana_stock.title("Stock")
     ventana_stock.geometry("400x350")
+
+    try:
+        respuesta = sist_admin.gest_stock()
+        datos = respuesta.data
+    except Exception as e:
+        messagebox.showerror("Error", f"Error al obtener stock: {e}")
+        return
+
+    # Estilo para la tabla (Treeview)
+    style = ttk.Style(ventana_stock)
+    style.theme_use("default")
+    style.configure("Treeview", background="#2a2d2e", foreground="white", rowheight=25, fieldbackground="#343638")
+    style.map('Treeview', background=[('selected', '#22559b')])
+    style.configure("Treeview.Heading", background="#565b5e", foreground="white", relief="flat")
+    style.map("Treeview.Heading", background=[('active', '#3484F0')])
+
+    columnas = ("Id", "Nombre", "Precio-Compra", "Precio-Venta", "Cantidad", "Cantidad-Minima")
+    tabla = ttk.Treeview(ventana_stock, columns=columnas, show="headings")
+    
+    tabla.heading("Id", text="ID")
+    tabla.heading("Nombre", text="Nombre")
+    tabla.heading("Precio-Compra", text="Precio-Compra")
+    tabla.heading("Precio-Venta", text="Precio-Venta")
+    tabla.heading("Cantidad", text="Cantidad")
+    tabla.heading("Cant-minima", text="Cantidad Minima")
+
+    tabla.column("Id", width=50, anchor="center")
+    tabla.column("Nombre", width=80, anchor="center")
+    tabla.column("Precio-Compra", width=100)
+    tabla.column("Precio-Venta", width=100)
+    tabla.column("Cantidad", width=200)
+    tabla.column("Cant-minima", width=100, anchor="center")
+
+    scrollbar = ttk.Scrollbar(ventana_stock, orient="vertical", command=tabla.yview)
+    tabla.configure(yscrollcommand=scrollbar.set)
+    scrollbar.pack(side="right", fill="y")
+
+    tabla.pack(fill="both", expand=True, padx=20, pady=20)
+    
+    if datos:
+        for fila in datos:
+            tabla.insert("", "end", values=(
+                fila.get("id", ""),
+                fila.get("nombre", ""),
+                fila.get("precio_compra", ""),
+                fila.get("precio_venta", ""),
+                fila.get("cantidad", ""),
+                fila.get("cant_minima", "")
+            ))
+
     btn_salir = ctk.CTkButton(ventana_stock, text="Salir", command=ventana_administrador)
     limpiar_pantalla(ventana_stock)
     btn_salir.pack(pady=10)
     ventana_stock.mainloop()
 
-def ventana_gest_clientes():
+def ventana_gest_clientes(sist_admin):
     ventana_gest_clientes = ctk.CTk()
     ventana_gest_clientes.title("Gestión de Clientes")
     ventana_gest_clientes.geometry("400x350")
@@ -217,28 +267,163 @@ def ventana_gest_clientes():
     btn_salir.pack(pady=10)
     ventana_gest_clientes.mainloop()
 
-def ventana_ingresos():
+def ventana_ingresos(sist_admin):
     ventana_ingresos = ctk.CTk()
     ventana_ingresos.title("Ingresos")
     ventana_ingresos.geometry("400x350")
+
+    try:
+        respuesta = sist_admin.ingresos()
+        datos = respuesta.data
+    except Exception as e:
+        messagebox.showerror("Error", f"Error al obtener ingresos: {e}")
+        return
+
+    # Estilo para la tabla (Treeview)
+    style = ttk.Style(ventana_ingresos)
+    style.theme_use("default")
+    style.configure("Treeview", background="#2a2d2e", foreground="white", rowheight=25, fieldbackground="#343638")
+    style.map('Treeview', background=[('selected', '#22559b')])
+    style.configure("Treeview.Heading", background="#565b5e", foreground="white", relief="flat")
+    style.map("Treeview.Heading", background=[('active', '#3484F0')])
+
+    columnas = ("Id", "Descripción", "Monto", "Fecha")
+    tabla = ttk.Treeview(ventana_ingresos, columns=columnas, show="headings")
+    
+    tabla.heading("Id", text="ID")
+    tabla.heading("Descripción", text="Descripción")
+    tabla.heading("Monto", text="Monto")
+    tabla.heading("Fecha", text="Fecha")
+
+    tabla.column("Id", width=50, anchor="center")
+    tabla.column("Descripción", width=200)
+    tabla.column("Monto", width=100, anchor="center")
+    tabla.column("Fecha", width=150, anchor="center")
+
+    scrollbar = ttk.Scrollbar(ventana_ingresos, orient="vertical", command=tabla.yview)
+    tabla.configure(yscrollcommand=scrollbar.set)
+    scrollbar.pack(side="right", fill="y")
+
+    tabla.pack(fill="both", expand=True, padx=20, pady=20)
+    
+    if datos:
+        for fila in datos:
+            tabla.insert("", "end", values=(
+                fila.get("id", ""),
+                fila.get("descripcion", ""),
+                fila.get("monto", ""),
+                fila.get("fecha", "")
+            ))
+
+
+
     btn_salir = ctk.CTkButton(ventana_ingresos, text="Salir", command=ventana_administrador)
     limpiar_pantalla(ventana_ingresos)
     btn_salir.pack(pady=10)
     ventana_ingresos.mainloop()
 
-def ventana_gastos():
+def ventana_gastos(sist_admin):
     ventana_gastos = ctk.CTk()
     ventana_gastos.title("Gastos")
     ventana_gastos.geometry("400x350")
+
+    try:
+        respuesta = sist_admin.gastos()
+        datos = respuesta.data
+    except Exception as e:
+        messagebox.showerror("Error", f"Error al obtener gastos: {e}")
+        return
+
+    # Estilo para la tabla (Treeview)
+    style = ttk.Style(ventana_gastos)
+    style.theme_use("default")
+    style.configure("Treeview", background="#2a2d2e", foreground="white", rowheight=25, fieldbackground="#343638")
+    style.map('Treeview', background=[('selected', '#22559b')])
+    style.configure("Treeview.Heading", background="#565b5e", foreground="white", relief="flat")
+    style.map("Treeview.Heading", background=[('active', '#3484F0')])
+
+    columnas = ("Id", "Descripción", "Monto", "Fecha")
+    tabla = ttk.Treeview(ventana_gastos, columns=columnas, show="headings")
+    
+    tabla.heading("Id", text="ID")
+    tabla.heading("Descripción", text="Descripción")
+    tabla.heading("Monto", text="Monto")
+    tabla.heading("Fecha", text="Fecha")
+
+    tabla.column("Id", width=50, anchor="center")
+    tabla.column("Descripción", width=200)
+    tabla.column("Monto", width=100, anchor="center")
+    tabla.column("Fecha", width=150, anchor="center")
+
+    scrollbar = ttk.Scrollbar(ventana_gastos, orient="vertical", command=tabla.yview)
+    tabla.configure(yscrollcommand=scrollbar.set)
+    scrollbar.pack(side="right", fill="y")
+
+    tabla.pack(fill="both", expand=True, padx=20, pady=20)
+    
+    if datos:
+        for fila in datos:
+            tabla.insert("", "end", values=(
+                fila.get("id", ""),
+                fila.get("descripcion", ""),
+                fila.get("monto", ""),
+                fila.get("fecha", "")
+            ))
+
     btn_salir = ctk.CTkButton(ventana_gastos, text="Salir", command=ventana_administrador)
     limpiar_pantalla(ventana_gastos)
     btn_salir.pack(pady=10)
     ventana_gastos.mainloop()
 
-def ventana_distribuidores():
+def ventana_distribuidores(sist_admin):
     ventana_distribuidores = ctk.CTk()
     ventana_distribuidores.title("Distribuidores")
     ventana_distribuidores.geometry("400x350")
+    
+    try:
+        respuesta = sist_admin.contactar_distribuidores()
+        datos = respuesta.data
+    except Exception as e:
+        messagebox.showerror("Error", f"Error al obtener distribuidores: {e}")
+        return
+
+    # Estilo para la tabla (Treeview)
+    style = ttk.Style(ventana_distribuidores)
+    style.theme_use("default")
+    style.configure("Treeview", background="#2a2d2e", foreground="white", rowheight=25, fieldbackground="#343638")
+    style.map('Treeview', background=[('selected', '#22559b')])
+    style.configure("Treeview.Heading", background="#565b5e", foreground="white", relief="flat")
+    style.map("Treeview.Heading", background=[('active', '#3484F0')])
+
+    columnas = ("Id", "Nombre", "Email", "Celular")
+    tabla = ttk.Treeview(ventana_distribuidores, columns=columnas, show="headings")
+    
+    tabla.heading("Id", text="ID")
+    tabla.heading("Nombre", text="Nombre")
+    tabla.heading("Email", text="Email")
+    tabla.heading("Celular", text="Celular")
+
+    tabla.column("Id", width=50, anchor="center")
+    tabla.column("Nombre", width=150)
+    tabla.column("Email", width=200)
+    tabla.column("Celular", width=100, anchor="center")
+
+    scrollbar = ttk.Scrollbar(ventana_distribuidores, orient="vertical", command=tabla.yview)
+    tabla.configure(yscrollcommand=scrollbar.set)
+    scrollbar.pack(side="right", fill="y")
+
+    tabla.pack(fill="both", expand=True, padx=20, pady=20)
+    
+    if datos:
+        for fila in datos:
+            tabla.insert("", "end", values=(
+                fila.get("id", ""),
+                fila.get("nombre", ""),
+                fila.get("email", ""),
+                fila.get("celular", "")
+            ))
+
+
     btn_salir = ctk.CTkButton(ventana_distribuidores, text="Salir", command=ventana_administrador)
     limpiar_pantalla(ventana_distribuidores)
     btn_salir.pack(pady=10)
