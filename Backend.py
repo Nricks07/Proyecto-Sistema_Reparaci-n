@@ -33,7 +33,7 @@ class Administrador(Persona):
         self.contraseña = contra
         self.id_admin = id_admin
 
-    def cambiar_estados_soli(self, id_solicitud, new_estado):
+    def cambiar_estado_soli(self, id_solicitud, new_estado):
         actualizar = supabase.table("Solicitudes").update({"estado": new_estado}).eq("id", id_solicitud).execute()
         return actualizar
 
@@ -197,7 +197,7 @@ class Stock:
     def mostrar_stock(self):
         mostrar = supabase.table("Productos").select("*").execute()
         return mostrar
-
-    def eliminar_stock(self, nombre):
-        eliminar = supabase.table("Productos").delete().eq("Nombre", nombre).execute()
+#
+    def eliminar_stock(self, id_producto):
+        eliminar = supabase.table("Productos").delete().eq("Id", id_producto).execute()
         return eliminar

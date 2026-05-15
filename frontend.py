@@ -141,7 +141,7 @@ def ventana_solicitudes(sist_admin):
         valores_actuales[5] = nuevo_estado
         
         try:
-            sist_admin.cambiar_estados_soli(id_db_pedido, nuevo_estado)
+            sist_admin.cambiar_estado_soli(id_db_pedido, nuevo_estado)
             tabla.item(item_id, values=valores_actuales) # Actualizar visualmente la tabla
             messagebox.showinfo("Éxito", f"Pedido actualizado a: {nuevo_estado}")
         except Exception as e:
@@ -179,10 +179,10 @@ def ventana_solicitudes(sist_admin):
     label.pack(side="left", padx=10)
 
     # Opciones de estado ampliadas
-    opciones_estado = ["Pendiente", "En progreso", "Listo", "Cancelado"]
+    opciones_estado = ["En progreso", "Listo", "Cancelado"]
     menu_estado = ctk.CTkOptionMenu(frame_controles, values=opciones_estado)
     menu_estado.pack(side="left", padx=10)
-    menu_estado.set("Pendiente") # Valor por defecto
+    menu_estado.set("En progreso") # Valor por defecto
 
     btn_actualizar = ctk.CTkButton(frame_controles, text="Actualizar Estado", command=actualizar_estado_logica)
     btn_actualizar.pack(side="left", padx=10)
@@ -198,7 +198,7 @@ def ventana_solicitudes(sist_admin):
     btn_salir.pack(pady=10)
     limpiar_pantalla(ventana_soli)
     ventana_soli.mainloop()
-#Falta botones
+
 def ventana_stock(sist_admin):
     ventana_stock = ctk.CTk()
     ventana_stock.title("Stock")
@@ -252,6 +252,65 @@ def ventana_stock(sist_admin):
                 fila.get("cantidad", ""),
                 fila.get("cant_minima", "")
             ))
+
+    frame_controles = ctk.CTkFrame(ventana_stock)
+    frame_controles.pack(pady=10, padx=20, fill="x")
+
+    label = ctk.CTkLabel(frame_controles, text="Cantidad a añadir:")
+    label.pack(side="left", padx=10)
+
+    cantidad = ctk.CTkEntry(frame_controles)
+    cantidad.pack(side="left", padx=10)
+
+    menu_estado = ctk.CTkOptionMenu(frame_controles, values=cantidad.get())
+    menu_estado.pack(side="left", padx=10)
+
+    def cantidad_agregar():
+        seleccion = tabla.selection()
+            
+        if not seleccion:
+            messagebox.showwarning("Atención", "Por favor, selecciona un producto de la tabla")
+            return
+
+        cantidad_agregar = cantidad.get()
+        if not cantidad_agregar or not cantidad_agregar.isdigit():
+            messagebox.showwarning("Atención", "Por favor, ingresa una cantidad válida")
+            
+        item_id = seleccion[0]
+        valores = tabla.item(item_id, "values")
+        id_producto = valores[0]
+        cantidad_actual = valores[4]
+        
+        cantidad_nueva = int(cantidad_actual) + int(cantidad_agregar)
+        
+        try:
+            sist_stock.agregar_cant(id_producto, cantidad_nueva)
+            tabla.item(item_id, values=cantidad_nueva) # Actualizar visualmente la tabla
+            messagebox.showinfo("Éxito", f"Producto actualizado a: {cantidad_nueva}")
+        except Exception as e:
+            messagebox.showerror("Error", f"No se pudo actualizar el producto: {e}")
+
+    def eliminar_producto():
+        seleccion = tabla.selection()
+            
+        if not seleccion:
+            messagebox.showwarning("Atención", "Por favor, selecciona un producto de la tabla")
+            return
+
+        item_id = seleccion[0]
+        valores = tabla.item(item_id, "values")
+        id_producto = valores[0]
+        
+        try:
+            sist_stock.eliminar_stock(id_producto)
+            tabla.delete(item_id) # Remover de la tabla visualmente
+            messagebox.showinfo("Éxito", "Producto eliminado correctamente.")
+        except Exception as e:
+            messagebox.showerror("Error", f"No se pudo eliminar el producto: {e}")
+        
+
+    btn_actualizar = ctk.CTkButton(frame_controles, text="Agregar Cantidad", command=cantidad_agregar)
+    btn_actualizar.pack(side="left", padx=10)
 
     btn_salir = ctk.CTkButton(ventana_stock, text="Salir", command=ventana_administrador)
     limpiar_pantalla(ventana_stock)
