@@ -16,16 +16,16 @@ class Persona:
         self.correo = mail
         self.num_cel = cel
 
+    @staticmethod
     def login(correo, contra):
         try:
-            usuario = Usuario()
             sesion = supabase.auth.sign_in_with_password({
                 "email": correo,
                 "password": contra,
             })
-            messagebox.showinfo("Login", "Login exitoso")
+            return sesion
         except Exception as e:
-            messagebox.showerror("Login", f"Error al iniciar sesión: {e}")
+            raise Exception(f"Error al iniciar sesión: {e}")
 
 class Administrador(Persona):
     def __init__(self, nom, mail, cel, id_admin, contra):
@@ -39,7 +39,7 @@ class Administrador(Persona):
 
     def gest_stock(self):
         stock = Stock()
-        stock.mostrar_stock()
+        return stock.mostrar_stock()
 
     def contactar_distribuidores(self):
         mostrar = supabase.table("Distribuidor").select("*").execute()
@@ -140,7 +140,7 @@ class Solicitudes:
             self.id_solicitud = insertar.data[0]['id'] 
             
         return insertar
-         
+
     def agregar_precio(self, costo_sol):
         actualizar = supabase.table("Solicitudes").update({"costo": costo_sol}).eq("id", self.id_solicitud).execute()
         return actualizar
@@ -159,10 +159,12 @@ class Solicitudes:
 
     def mostrar_solicitudes_finalizadas(self):
         mostrar = supabase.table("Solicitudes").select("*").eq("estado", "Finalizado").execute()
-        descripcion = supabase.table("Solicitudes").select("descripcion").eq("estado", "Finalizado").execute()
-        monto = supabase.table("Solicitudes").select("costo").eq("estado", "Finalizado").execute()
-        mostrar2 = supabase.table("Finanzas").insert([{"descripcion": descripcion, "monto" : monto, "tipo" : "Ingreso"}]).execute()
-        return mostrar, mostrar2
+        if mostrar.data:
+            descripcion = mostrar.data[-1].get('descripcion', 'Reparación Finalizada')
+            monto = float(mostrar.data[-1].get('costo', 0))
+            mostrar2 = supabase.table("Finanzas").insert([{"descripcion": descripcion, "monto" : monto, "tipo" : "Ingreso"}]).execute()
+            return mostrar, mostrar2
+        return mostrar, None
 
     def cambiar_estado_soli(self, id_sol, estado):
         actualizar = supabase.table("Solicitudes").update({"estado": estado}).eq("id", id_sol).execute()
@@ -189,15 +191,212 @@ class Stock:
 
     def agregar_cant(self, nombre, cantidad):
         agregar = supabase.table("Productos").update({"Cantidad": cantidad}).eq("Nombre", nombre).execute()
-        monto = supabase.table("Productos").select("Precio-Compra").eq("Nombre", nombre).execute()
-        monto_final = monto * cantidad
-        gasto = supabase.table("Finanzas").insert([{"descripcion" : "Compra de Repuestos", "monto" : monto_final, "tipo" : "Gasto"}]).execute()
-        return agregar, gasto
+        monto_resp = supabase.table("Productos").select("Precio-Compra").eq("Nombre", nombre).execute()
+        if monto_resp.data:
+            monto = float(monto_resp.data[0]['Precio-Compra'])
+            monto_final = monto * cantidad
+            gasto = supabase.table("Finanzas").insert([{"descripcion" : "Compra de Repuestos", "monto" : monto_final, "tipo" : "Gasto"}]).execute()
+            return agregar, gasto
+        return agregar, None
 
     def mostrar_stock(self):
         mostrar = supabase.table("Productos").select("*").execute()
         return mostrar
-#
+
     def eliminar_stock(self, id_producto):
         eliminar = supabase.table("Productos").delete().eq("Id", id_producto).execute()
         return eliminar
+
+class Piezas_Consola(Stock):
+    def __init__(self, marca, modelo, mante_sencillo, mante_estandar, mante_completo, repa_ruido, repa_novideo, repa_noprende):
+        super().__init__()
+        self.marca = marca
+        self.modelo = modelo
+        self.mante_sencillo = mante_sencillo
+        self.mante_estandar = mante_estandar
+        self.mante_completo = mante_completo
+        self.repa_ruido = repa_ruido
+        self.repa_no_video = repa_novideo
+        self.repa_no_enciende = repa_noprende
+
+    def agregar_piezas(self):
+        nueva_pieza = {
+            "Marca" : self.marca,
+            "Modelo" : self.modelo,
+            "Mantenimiento Sencillo" : self.mante_sencillo,
+            "Mantenimiento Estandar" : self.mante_estandar,
+            "Mantenimiento Completo" : self.mante_completo,
+            "Reparación Ruido" : self.repa_ruido,
+            "Reparación No Da Video" : self.repa_novideo,
+            "Reparación No Prende" : self.repa_noprende,
+        }
+        insertar = supabase.table("Consola").insert([nueva_pieza]).execute()
+        return insertar
+
+    def agregar_cantidad(self, id_consola, cantidad):
+        actualizar = supabase.table("Consola").update({"Cantidad" : cantidad}).eq("id", id_consola).execute()
+        return actualizar
+    
+    def mostrar_consola(self):
+        mostrar = supabase.table("Consola").select("*").execute()
+        return mostrar
+
+    def eliminar_consola(self, id_consola):
+        eliminar = supabase.table("Consola").delete().eq("Id", id_consola).execute()
+        return eliminar
+
+    def actualizar_consola(self, id_consola, mante_sencillo, mante_estandar, mante_completo, repa_ruido, repa_novideo, repa_noprende):
+        actualizar = supabase.table("Consola").update({"Mantenimiento Sencillo" : mante_sencillo, "Mantenimiento Estandar" : mante_estandar, "Mantenimiento Completo" : mante_completo, "Reparacion Ruido" : repa_ruido, "Reparacion No DaVideo" : repa_novideo, "Reparacion NoPrende" : repa_noprende}).eq("id", id_consola).execute()
+        return actualizar
+
+class Piezas_Celular(Stock):
+    def __init__(self, marca, modelo, pantalla_venta, pantalla_compra, bateria_venta, bateria_compra, centro_carga_venta, centro_carga_compra,camara_venta, camara_compra, carcasa_venta, carcasa_compra, cantidad_pantalla, cantidad_bateria, cantidad_centro_carga, cantidad_camara, cantidad_carcasa):
+        super().__init__()
+        self.marca = marca
+        self.modelo = modelo
+        self.pantalla_venta = pantalla_venta
+        self.pantalla_compra = pantalla_compra
+        self.bateria_venta = bateria_venta
+        self.bateria_compra = bateria_compra
+        self.centro_carga_venta = centro_carga_venta
+        self.centro_carga_compra = centro_carga_compra
+        self.camara_venta = camara_venta
+        self.camara_compra = camara_compra
+        self.carcasa_venta = carcasa_venta
+        self.carcasa_compra = carcasa_compra
+        self.cantidad_pantalla = cantidad_pantalla
+        self.cantidad_bateria = cantidad_bateria
+        self.cantidad_centro_carga = cantidad_centro_carga
+        self.cantidad_camara = cantidad_camara
+        self.cantidad_carcasa = cantidad_carcasa
+
+    def agregar_piezas(self):
+        nueva_pieza = {
+            "Marca" : self.marca,
+            "Modelo" : self.modelo,
+            "Pantalla Venta" : self.pantalla_venta,
+            "Pantalla Provedor" : self.pantalla_compra,
+            "Bateria Venta" : self.bateria_venta,
+            "Bateria Provedor" : self.bateria_compra,
+            "C/Carga Venta" : self.centro_carga_venta,
+            "C/Carga Provedor" : self.centro_carga_compra,
+            "Camara Venta" : self.camara_venta,
+            "Camara Provedor" : self.camara_compra,
+            "Carcasa Venta" : self.carcasa_venta,
+            "Carcasa Provedor" : self.carcasa_compra,
+            "Cantidad Pantalla" : self.cantidad_pantalla,
+            "Cantidad Bateria" : self.cantidad_bateria,
+            "Cantidad C/Carga" : self.cantidad_centro_carga,
+            "Cantidad Camara" : self.cantidad_camara,
+            "Cantidad Carcasa" : self.cantidad_carcasa,
+        }
+        insertar = supabase.table("Celular").insert([nueva_pieza]).execute()
+        return insertar
+
+    def agregar_cantidad(self, id_celular, cantidad, categoria_pieza, Pieza):
+        categoria = ["Pantalla Provedor", "Bateria Provedor", "C/Carga Provedor", "Camara Provedor", "Carcasa Provedor"]
+        cantidades = ["Cantidad Pantalla", "Cantidad Bateria", "Cantidad C/Carga", "Cantidad Camara", "Cantidad Carcasa"]
+        cate = categoria[categoria_pieza]
+        canti = cantidades[Pieza]
+        actualizar = supabase.table("Celular").update({canti : cantidad}).eq("id", id_celular).execute()
+        monto_resp = supabase.table("Celular").select(cate).eq("id", id_celular).execute()
+        if monto_resp.data:
+            monto = float(monto_resp.data[0][cate])
+            monto_final = monto * cantidad
+            gasto = supabase.table("Finanzas").insert([{"descripcion" : "Compra de Repuestos", "monto" : monto_final, "tipo" : "Gasto"}]).execute()
+            return actualizar, gasto
+        return actualizar, None
+    
+    def mostrar_celular(self):
+        mostrar = supabase.table("Celular").select("*").execute()
+        return mostrar
+
+    def eliminar_celular(self, id_celular):
+        eliminar = supabase.table("Celular").delete().eq("id", id_celular).execute()
+        return eliminar
+    
+    def actualizar_celular(self, id_celular, pantalla_venta, pantalla_compra, bateria_venta, bateria_compra, centro_carga_venta, centro_carga_compra, carcasa_venta, carcasa_compra, cantidad):
+        actualizar = supabase.table("Celular").update({"Pantalla Venta" : pantalla_venta, "Pantalla Provedor" : pantalla_compra, "Bateria Venta" : bateria_venta, "Bateria Provedor" : bateria_compra, "C/Carga Venta" : centro_carga_venta, "C/Carga Provedor" : centro_carga_compra, "Carcasa Venta" : carcasa_venta, "Carcasa Provedor" : carcasa_compra, "Cantidad" : cantidad}).eq("id", id_celular).execute()
+        return actualizar
+
+class Piezas_Laptop(Stock):
+    def __init__(self, marca, categoria, modelo, proveedor, venta, cantidad): 
+        super().__init__()
+        self.marca = marca
+        self.categoria = categoria
+        self.modelo = modelo
+        self.venta = venta
+        self.proveedor = proveedor
+        self.cantidad = cantidad
+
+    def agregar_piezas(self):
+        nueva_pieza = {
+            "Marca" : self.marca,
+            "Categoria" : self.categoria,
+            "Modelo" : self.modelo,
+            "Proveedor" : self.proveedor,
+            "Venta" : self.cantidad,
+            "Cantidad" : self.cantidad,
+        }
+        insertar = supabase.table("Laptop").insert([nueva_pieza]).execute()
+        return insertar
+
+    def agregar_cantidad(self, id_pieza, cantidad):
+        actualizar = supabase.table("Laptop").update({"Cantidad" : cantidad}).eq("id", id_pieza).execute()
+        monto_resp = supabase.table("Laptop").select("Proveedor").eq("id", id_pieza).execute()
+        if monto_resp.data:
+            monto = float(monto_resp.data[0]['Proveedor'])
+            monto_final = monto * cantidad
+            gasto = supabase.table("Finanzas").insert([{"descripcion" : "Compra de Repuestos", "monto" : monto_final, "tipo" : "Gasto"}]).execute()
+            return actualizar, gasto
+        return actualizar, None
+
+    def mostrar_laptop(self):
+        mostrar = supabase.table("Laptop").select("*").execute()
+        return mostrar
+
+    def eliminar_laptop(self, id_laptop):
+        eliminar = supabase.table("Laptop").delete().eq("id", id_laptop).execute()
+        return eliminar
+    
+    def actualizar_laptop(self, id_laptop, venta, cantidad):
+        actualizar = supabase.table("Laptop").update({"Venta" : venta}).eq("id", id_laptop).execute()
+        return actualizar
+
+class controles(Stock):
+    def __init__(self, marca, modelo, mante_sencillo, mante_estandar, mante_completo, repa_joystick, repa_botones, repa_noprende):
+        super().__init__()
+        self.marca = marca
+        self.modelo = modelo
+        self.mante_sencillo = mante_sencillo
+        self.mante_estandar = mante_estandar
+        self.mante_completo = mante_completo
+        self.repa_joystick = repa_joystick
+        self.repa_botones = repa_botones
+        self.repa_noprende = repa_noprende
+
+    def agregar_piezas(self):
+        nueva_pieza = {
+            "Marca" : self.marca,
+            "Modelo" : self.modelo,
+            "Mantenimiento Sencillo" : self.mante_sencillo,
+            "Mantenimiento Estandar" : self.mante_estandar,
+            "Mantenimiento Completo" : self.mante_completo,
+            "Reparacion Joystick" : self.repa_joystick,
+            "Reparacion Botones" : self.repa_botones,
+            "Reparacion No Prende" : self.repa_noprende,
+        }
+        insertar = supabase.table("Controles").insert([nueva_pieza]).execute()
+        return insertar
+
+    def mostrar_controles(self):
+        mostrar = supabase.table("Controles").select("*").execute()
+        return mostrar
+
+    def eliminar_controles(self, id_control):
+        eliminar = supabase.table("Controles").delete().eq("id", id_control).execute()
+        return eliminar
+    
+    def actualizar_controles(self, id_control, mante_sencillo, mante_estandar, mante_completo, repa_joystick, repa_botones, repa_noprende):
+        actualizar = supabase.table("Controles").update({"Mantenimiento Sencillo" : mante_sencillo, "Mantenimiento Estandar" : mante_estandar, "Mantenimiento Completo" : mante_completo, "Reparacion Joystick" : repa_joystick, "Reparacion Botones" : repa_botones, "Reparacion No Prende" : repa_noprende}).eq("id", id_control).execute()
+        return actualizar
