@@ -316,6 +316,7 @@ def ventana_stock(sist_admin):
     limpiar_pantalla(ventana_stock)
     btn_salir.pack(pady=10)
     ventana_stock.mainloop()
+
 #falta tabla y botones
 def ventana_gest_clientes(sist_admin):
     ventana_gest_clientes = ctk.CTk()
@@ -325,6 +326,7 @@ def ventana_gest_clientes(sist_admin):
     limpiar_pantalla(ventana_gest_clientes)
     btn_salir.pack(pady=10)
     ventana_gest_clientes.mainloop()
+
 #faltan botones
 def ventana_ingresos(sist_admin):
     ventana_ingresos = ctk.CTk()
@@ -380,6 +382,7 @@ def ventana_ingresos(sist_admin):
     limpiar_pantalla(ventana_ingresos)
     btn_salir.pack(pady=10)
     ventana_ingresos.mainloop()
+
 #faltan botones
 def ventana_gastos(sist_admin):
     ventana_gastos = ctk.CTk()
@@ -433,6 +436,7 @@ def ventana_gastos(sist_admin):
     limpiar_pantalla(ventana_gastos)
     btn_salir.pack(pady=10)
     ventana_gastos.mainloop()
+    
 #faltan botones
 def ventana_distribuidores(sist_admin):
     ventana_distribuidores = ctk.CTk()
