@@ -1,3 +1,4 @@
+from Backend import Piezas_Consola
 from Backend import *
 import customtkinter as ctk
 from tkinter import messagebox
@@ -7,6 +8,10 @@ sist_admin = Administrador()
 sist_stock = Stock()
 sist_solicitud = Solicitudes()
 sist_usuario = Persona()
+sist_consolas = Piezas_Consola()
+sist_celulares = Piezas_Celular()
+sist_laptops = Piezas_Laptop()
+sist_controles = controles()
 
 def limpiar_pantalla(ventana):
     for widget in ventana.winfo_children():
@@ -119,7 +124,7 @@ def ventana_solicitudes(sist_admin):
                 fila.get("descripcion", ""),
                 fila.get("estado", ""),
                 fila.get("costo", ""),
-                fila.get("created_at", "")
+                fila.get("fecha_recibo", "")
             ))
 
     # --- Lógica de botones anidada ---
@@ -199,124 +204,6 @@ def ventana_solicitudes(sist_admin):
     limpiar_pantalla(ventana_soli)
     ventana_soli.mainloop()
 
-def ventana_stock(sist_admin):
-    ventana_stock = ctk.CTk()
-    ventana_stock.title("Stock")
-    ventana_stock.geometry("400x350")
-
-    try:
-        respuesta = sist_admin.gest_stock()
-        datos = respuesta.data
-    except Exception as e:
-        messagebox.showerror("Error", f"Error al obtener stock: {e}")
-        return
-
-    # Estilo para la tabla (Treeview)
-    style = ttk.Style(ventana_stock)
-    style.theme_use("default")
-    style.configure("Treeview", background="#2a2d2e", foreground="white", rowheight=25, fieldbackground="#343638")
-    style.map('Treeview', background=[('selected', '#22559b')])
-    style.configure("Treeview.Heading", background="#565b5e", foreground="white", relief="flat")
-    style.map("Treeview.Heading", background=[('active', '#3484F0')])
-
-    columnas = ("Id", "Nombre", "Precio-Compra", "Precio-Venta", "Cantidad", "Cantidad-Minima")
-    tabla = ttk.Treeview(ventana_stock, columns=columnas, show="headings")
-    
-    tabla.heading("Id", text="ID")
-    tabla.heading("Nombre", text="Nombre")
-    tabla.heading("Precio-Compra", text="Precio-Compra")
-    tabla.heading("Precio-Venta", text="Precio-Venta")
-    tabla.heading("Cantidad", text="Cantidad")
-    tabla.heading("Cant-minima", text="Cantidad Minima")
-
-    tabla.column("Id", width=50, anchor="center")
-    tabla.column("Nombre", width=80, anchor="center")
-    tabla.column("Precio-Compra", width=100)
-    tabla.column("Precio-Venta", width=100)
-    tabla.column("Cantidad", width=200)
-    tabla.column("Cant-minima", width=100, anchor="center")
-
-    scrollbar = ttk.Scrollbar(ventana_stock, orient="vertical", command=tabla.yview)
-    tabla.configure(yscrollcommand=scrollbar.set)
-    scrollbar.pack(side="right", fill="y")
-
-    tabla.pack(fill="both", expand=True, padx=20, pady=20)
-    
-    if datos:
-        for fila in datos:
-            tabla.insert("", "end", values=(
-                fila.get("id", ""),
-                fila.get("nombre", ""),
-                fila.get("precio_compra", ""),
-                fila.get("precio_venta", ""),
-                fila.get("cantidad", ""),
-                fila.get("cant_minima", "")
-            ))
-
-    frame_controles = ctk.CTkFrame(ventana_stock)
-    frame_controles.pack(pady=10, padx=20, fill="x")
-
-    label = ctk.CTkLabel(frame_controles, text="Cantidad a añadir:")
-    label.pack(side="left", padx=10)
-
-    cantidad = ctk.CTkEntry(frame_controles)
-    cantidad.pack(side="left", padx=10)
-
-    menu_estado = ctk.CTkOptionMenu(frame_controles, values=cantidad.get())
-    menu_estado.pack(side="left", padx=10)
-
-    def cantidad_agregar():
-        seleccion = tabla.selection()
-            
-        if not seleccion:
-            messagebox.showwarning("Atención", "Por favor, selecciona un producto de la tabla")
-            return
-
-        cantidad_agregar = cantidad.get()
-        if not cantidad_agregar or not cantidad_agregar.isdigit():
-            messagebox.showwarning("Atención", "Por favor, ingresa una cantidad válida")
-            
-        item_id = seleccion[0]
-        valores = tabla.item(item_id, "values")
-        id_producto = valores[0]
-        cantidad_actual = valores[4]
-        
-        cantidad_nueva = int(cantidad_actual) + int(cantidad_agregar)
-        
-        try:
-            sist_stock.agregar_cant(id_producto, cantidad_nueva)
-            tabla.item(item_id, values=cantidad_nueva) # Actualizar visualmente la tabla
-            messagebox.showinfo("Éxito", f"Producto actualizado a: {cantidad_nueva}")
-        except Exception as e:
-            messagebox.showerror("Error", f"No se pudo actualizar el producto: {e}")
-
-    def eliminar_producto():
-        seleccion = tabla.selection()
-            
-        if not seleccion:
-            messagebox.showwarning("Atención", "Por favor, selecciona un producto de la tabla")
-            return
-
-        item_id = seleccion[0]
-        valores = tabla.item(item_id, "values")
-        id_producto = valores[0]
-        
-        try:
-            sist_stock.eliminar_stock(id_producto)
-            tabla.delete(item_id) # Remover de la tabla visualmente
-            messagebox.showinfo("Éxito", "Producto eliminado correctamente.")
-        except Exception as e:
-            messagebox.showerror("Error", f"No se pudo eliminar el producto: {e}")
-        
-
-    btn_actualizar = ctk.CTkButton(frame_controles, text="Agregar Cantidad", command=cantidad_agregar)
-    btn_actualizar.pack(side="left", padx=10)
-
-    btn_salir = ctk.CTkButton(ventana_stock, text="Salir", command=ventana_administrador)
-    limpiar_pantalla(ventana_stock)
-    btn_salir.pack(pady=10)
-    ventana_stock.mainloop()
-
 #falta tabla y botones
 def ventana_gest_clientes(sist_admin):
     ventana_gest_clientes = ctk.CTk()
@@ -383,7 +270,6 @@ def ventana_ingresos(sist_admin):
     btn_salir.pack(pady=10)
     ventana_ingresos.mainloop()
 
-#faltan botones
 def ventana_gastos(sist_admin):
     ventana_gastos = ctk.CTk()
     ventana_gastos.title("Gastos")
@@ -436,7 +322,7 @@ def ventana_gastos(sist_admin):
     limpiar_pantalla(ventana_gastos)
     btn_salir.pack(pady=10)
     ventana_gastos.mainloop()
-    
+
 #faltan botones
 def ventana_distribuidores(sist_admin):
     ventana_distribuidores = ctk.CTk()
@@ -491,3 +377,60 @@ def ventana_distribuidores(sist_admin):
     limpiar_pantalla(ventana_distribuidores)
     btn_salir.pack(pady=10)
     ventana_distribuidores.mainloop()
+
+def ventana_stock():
+    ventana_stock = ctk.CTk()
+    ventana_stock.title("Stock")
+    ventana_stock.geometry("400x350")
+    btn_consola = ctk.CTkButton(ventana_stock, text="Consolas", command=lambda: ventana_consolas())
+    btn_consola.pack(pady=10)
+    btn_celulares = ctk.CTkButton(ventana_stock, text="Celulares", command=lambda: ventana_celulares())
+    btn_celulares.pack(pady=10)
+    btn_laptops = ctk.CTkButton(ventana_stock, text="Laptops", command=lambda: ventana_laptops())
+    btn_laptops.pack(pady=10)
+    btn_controles = ctk.CTkButton(ventana_stock, text="Controles", command=lambda: ventana_controles())
+    btn_controles.pack(pady=10)
+    limpiar_pantalla(ventana_stock)
+    btn_salir = ctk.CTkButton(ventana_stock, text="Salir", command=ventana_administrador)
+    btn_salir.pack(pady=10)
+    ventana_stock.mainloop()
+
+#falta hacerlo como la ventana de solicitudes y botones para agregar, eliminar y modificar
+def ventana_consolas():
+    ventana_consolas = ctk.CTk()
+    ventana_consolas.title("Consolas")
+    ventana_consolas.geometry("400x350")
+    limpiar_pantalla(ventana_consolas)
+    btn_salir = ctk.CTkButton(ventana_consolas, text="Salir", command=ventana_stock)
+    btn_salir.pack(pady=10)
+    ventana_consolas.mainloop()
+
+#falta hacerlo como la ventana de solicitudes y botones para agregar, eliminar y modificar
+def ventana_celulares():
+    ventana_celulares = ctk.CTk()
+    ventana_celulares.title("Celulares")
+    ventana_celulares.geometry("400x350")
+    limpiar_pantalla(ventana_celulares)
+    btn_salir = ctk.CTkButton(ventana_celulares, text="Salir", command=ventana_stock)
+    btn_salir.pack(pady=10)
+    ventana_celulares.mainloop()
+
+#falta hacerlo como la ventana de solicitudes y botones para agregar, eliminar y modificar
+def ventana_laptops():
+    ventana_laptops = ctk.CTk()
+    ventana_laptops.title("Laptops")
+    ventana_laptops.geometry("400x350")
+    limpiar_pantalla(ventana_laptops)
+    btn_salir = ctk.CTkButton(ventana_laptops, text="Salir", command=ventana_stock)
+    btn_salir.pack(pady=10)
+    ventana_laptops.mainloop()
+
+#falta hacerlo como la ventana de solicitudes y botones para agregar, eliminar y modificar
+def ventana_controles():
+    ventana_controles = ctk.CTk()
+    ventana_controles.title("Controles")
+    ventana_controles.geometry("400x350")
+    limpiar_pantalla(ventana_controles)
+    btn_salir = ctk.CTkButton(ventana_controles, text="Salir", command=ventana_stock)
+    btn_salir.pack(pady=10)
+    ventana_controles.mainloop()
